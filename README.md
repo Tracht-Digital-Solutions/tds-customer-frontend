@@ -1,30 +1,41 @@
 # tds-customer-panel
 
-**Deploy target for the customer portal** (`app.tracht-digital.de`).
+The **customer portal** product (`app.tracht-digital.de`). A standalone Astro app
+that composes the shared **core panel host**
+(`@tracht-digital-solutions/tds-core-panel-frontend`) with the **customer-facing
+extension set**. Deployed from this repo's own `dev` / `release` branches.
 
-The customer portal is a **build of `tds-core-panel-frontend`** with the
-**`PANEL_TARGET=customer`** product target — the same base host, the
-customer-facing extension set (currently support-tickets), the customer auth hint
-key, and the "Portal" brand. No separate app codebase.
+## How it works
 
-## Build
+Assembled at build time from published packages — this repo owns only the
+composition + deploy pipeline:
+
+- `astro.config.mjs`:
+  - `corePanelBase()` (host package) injects the shared base routes + shell/auth
+    gate; `panelHost({ extensions })` injects each extension's route + virtuals.
+  - `PANEL_TARGET = customer` selects the customer auth-hint key (`tds_customer_*`)
+    + brand ("Portal"). The session cookie is shared
+    (`Domain=.tracht-digital.de`), so a principal with access is SSO'd across the
+    admin panel + this portal.
+- The extension set: currently `support-tickets` (customer-facing only). Add the
+  billing / projects / documents / messages extensions here as they ship.
+
+To change the shell/base pages: edit the **host** package and release it, then
+repin here.
+
+## Develop
 
 ```bash
-# in tds-core-panel-frontend:
-npm install
-PANEL_TARGET=customer npm run build
-# → dist/ deploys to app.tracht-digital.de
+npm install --no-package-lock   # host + extensions from GitHub Packages (needs NPM_TOKEN)
+npm run dev
+npm run build                   # → dist/  (the deployed artifact)
 ```
 
-- Enabled extensions: `tds-core-panel-frontend/astro.config.mjs` (customer branch).
-- Auth hint key: `tds_customer_*`; brand suffix: "Portal" (`src/config/target.ts`).
-  The session cookie is shared (`Domain=.tracht-digital.de`), so a principal with
-  access is SSO'd across the admin panel + this portal.
-- Env: `PUBLIC_AUTH_API_URL`, `PUBLIC_API_BASE` → `api.tracht-digital.de/*`.
+## Deploy
 
-## This repo
+- **`dev` branch** — auto-built on every push to `main` (`dev.yml`), not deployed.
+- **`release` branch** — the manual button (`release.yml`): builds, force-pushes
+  `dist/` to `release`, pings `DEPLOY_WEBHOOK_URL`. The production host pulls
+  `release`.
 
-Holds the customer portal's **deploy config + secrets**. The static `dist/` comes
-from `tds-core-panel-frontend`; a deploy workflow (or host Git pull) publishes it
-to the customer domain. The sibling `tds-admin-panel` is the same core built with
-the default (admin) target.
+Secrets: `PACKAGE_TOKEN` (install + push branch), `DEPLOY_WEBHOOK_URL` (optional).
