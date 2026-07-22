@@ -1,8 +1,8 @@
 # tds-customer-frontend
 
 The **customer portal** product (`app.tracht-digital.de`). A standalone Astro app
-that composes the shared **core panel host**
-(`@tracht-digital-solutions/tds-core-panel-frontend`) with the **customer-facing
+that composes the shared **core frontend host**
+(`@tracht-digital-solutions/tds-core-frontend`) with the **customer-facing
 extension set**. Deployed from this repo's own `dev` / `release` branches.
 
 ## How it works
@@ -11,12 +11,12 @@ Assembled at build time from published packages — this repo owns only the
 composition + deploy pipeline:
 
 - `astro.config.mjs`:
-  - `corePanelBase()` (host package) injects the shared base routes + shell/auth
-    gate; `panelHost({ extensions })` injects each extension's route + virtuals.
-  - `PANEL_TARGET = customer` selects the customer auth-hint key (`tds_customer_*`)
+  - `coreFrontendBase()` (host package) injects the shared base routes + shell/auth
+    gate; `frontendHost({ extensions })` injects each extension's route + virtuals.
+  - `FRONTEND_TARGET = customer` selects the customer auth-hint key (`tds_customer_*`)
     + brand ("Portal"). The session cookie is shared
     (`Domain=.tracht-digital.de`), so a principal with access is SSO'd across the
-    admin panel + this portal.
+    admin frontend + this portal.
 - The extension set: currently `support-tickets` (customer-facing only). Add the
   billing / projects / documents / messages extensions here as they ship.
 
