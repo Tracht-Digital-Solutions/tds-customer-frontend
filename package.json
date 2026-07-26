@@ -1,6 +1,6 @@
 {
   "name": "tds-customer-frontend",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Customer portal product (app.tracht-digital.de): composes the core panel host with the customer-facing extension set. Deployed from its own dev/release branches.",
   "license": "UNLICENSED",
   "private": true,
@@ -9,7 +9,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "type-check": "astro check"
+    "type-check": "astro check",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.5",
@@ -32,6 +34,8 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "typescript": "^5.6.0"
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.9"
   }
 }
