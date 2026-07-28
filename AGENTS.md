@@ -45,6 +45,30 @@ npm run build                   # → dist/  (FRONTEND_TARGET=customer)
 - **`release` branch** — the manual button (`release.yml`): builds, force-pushes `dist/` to
   `release`, pings `DEPLOY_WEBHOOK_URL`. The production host pulls `release`.
 
+## Tests
+
+`npm run test:run` (vitest). This repo has no `src/` — its whole job is one
+composition decision, so `test/composition.test.ts` tests that decision against
+the **real installed extension manifests**, not fixtures.
+
+- `composeExtensions()` runs over the actual portal set and must not throw. It
+  hard-errors on any duplicate extension id, nav id, widget id or route — the FE
+  twin of the shared-`phinxlog` rule — but normally only during a full product
+  build.
+- Every nav entry must target a route some extension or the host actually
+  serves, or it is a 404 in the shipped portal.
+- **`FRONTEND_TARGET` must stay `customer` on both env vars.** Flipping it to
+  `admin` would give the portal the admin auth-hint prefix (`tds_admin_*`), so a
+  stale admin hint could reveal the portal shell before `/me` answers. Verified:
+  the flip fails the suite.
+- **`frontendHost` must keep its `layout` option**, or every extension page
+  ships as a bare unstyled fragment with no `<head>`.
+- **The portal set stays a strict subset.** Admin-only tooling — website/blog
+  CMS, lexware, the contact inbox, tools, customers, time-tracker — must never
+  be composed here. Importing one fails the suite.
+- Imports, `dependencies` and the array handed to `frontendHost` must agree in
+  all three directions.
+
 ## Version
 
 Bump `package.json` `version` on any composition/config/doc change, committed with the code.
