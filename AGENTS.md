@@ -15,8 +15,12 @@ in published packages.
   + config:
   - `coreFrontendBase()` (host package) injects the base pages + shell + pre-paint auth gate.
   - `frontendHost({ extensions })` injects each extension's route + virtual modules.
-  - `FRONTEND_TARGET=customer` selects the customer auth-hint prefix (`tds_customer_*`) + brand
-    ("Portal").
+  - `FRONTEND_TARGET=customer` selects the customer auth-hint prefix (`tds_customer_*`), the
+    brand suffix ("Portal"), and — since host 0.13.0 / tds-shared 0.15.0 — the **accent hue**:
+    the host emits `<html data-frontend="customer">` and `surfaces/panel.css` paints this
+    product **teal** (the management panel reads navy), so a user with both open knows which
+    surface they are on. That is the only visual difference between the two products; it is
+    one token block in tds-shared, not anything this repo configures.
 - **Extension set:** `support-tickets` + `billing` (the customer-facing invoice pay-link /
   own-invoice view; admins draft invoices in the admin frontend). Projects, documents and
   messages get added here as those extensions ship — see `MIGRATION-STATUS.md` for what's
