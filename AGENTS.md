@@ -36,9 +36,16 @@ in published packages.
 - **The toast stack is the host's, and there is exactly one.** The shell mounts
   `ToastHost` (tds-shared) once; extensions only *raise* toasts. If a page ever
   shows every message twice, something mounted a second host — that is the first
-  thing to check. Requires tds-shared `^0.16.0` + host `^0.14.0`, which is why
+  thing to check. Introduced in tds-shared 0.16.0 + host 0.14.0, which is why
   those two pins moved together: a `0.x` caret is minor-locked, so `^0.15.0`
-  would have kept resolving the toast-less build.
+  would have kept resolving the toast-less build. (That is provenance, not the
+  current requirement — read `package.json` for the pins in force.)
+- **Mobile behaviour comes from the library, not from this repo.** Since
+  tds-shared 0.18.0 a `.tds-table` scrolls itself below 40rem, `.tds-page__head`
+  stacks, interactive chips take the 44px touch target and the fixed bottom
+  elements clear the home indicator. Don't wrap a table in an `overflow-x` here
+  and don't add a competing breakpoint — fix it in tds-shared and repin.
+  This portal is the surface most likely to be opened on a phone.
 Same as `tds-admin-frontend`: `npm install --no-package-lock`; extensions pinned `^0.1.x`;
 Tailwind `@source` scan lives in the host; `PACKAGE_TOKEN` required, `DEPLOY_WEBHOOK_URL`
 optional.
