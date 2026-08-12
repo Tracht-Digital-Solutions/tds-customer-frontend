@@ -18,9 +18,14 @@ in published packages.
   - `FRONTEND_TARGET=customer` selects the customer auth-hint prefix (`tds_customer_*`), the
     brand suffix ("Portal"), and — since host 0.13.0 / tds-shared 0.15.0 — the **accent hue**:
     the host emits `<html data-frontend="customer">` and `surfaces/panel.css` paints this
-    product **teal** (the management panel reads navy), so a user with both open knows which
-    surface they are on. That is the only visual difference between the two products; it is
-    one token block in tds-shared, not anything this repo configures.
+    product in the brand **navy** (the management frontend reads burgundy), so a user with
+    both open knows which surface they are on. That is the only visual difference between
+    the two products; it is one token block in tds-shared, not anything this repo configures.
+    - **Since tds-shared 0.20.0 this product has no override at all** — it renders the BASE
+      panel, and `[data-frontend="admin"]` is the block that deviates. The portal's old teal
+      is gone; the red now means "management rights", so the surface a customer sees is the
+      neutral one. `data-frontend="customer"` is still emitted (it costs nothing and keeps
+      the axis explicit), it just matches no rule today.
 - **Extension set:** `support-tickets` + `billing` (the customer-facing invoice pay-link /
   own-invoice view; admins draft invoices in the admin frontend). Projects, documents and
   messages get added here as those extensions ship — see `MIGRATION-STATUS.md` for what's
