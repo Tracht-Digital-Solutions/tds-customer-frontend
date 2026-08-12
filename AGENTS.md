@@ -21,7 +21,7 @@ in published packages.
     product in the brand **navy** (the management frontend reads burgundy), so a user with
     both open knows which surface they are on. That is the only visual difference between
     the two products; it is one token block in tds-shared, not anything this repo configures.
-    - **Since tds-shared 0.20.0 this product has no override at all** — it renders the BASE
+    - **Since tds-shared 0.20.1 this product has no override at all** — it renders the BASE
       panel, and `[data-frontend="admin"]` is the block that deviates. The portal's old teal
       is gone; the red now means "management rights", so the surface a customer sees is the
       neutral one. `data-frontend="customer"` is still emitted (it costs nothing and keeps
