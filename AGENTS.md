@@ -30,6 +30,14 @@ in published packages.
   own-invoice view; admins draft invoices in the admin frontend). Projects, documents and
   messages get added here as those extensions ship — see `MIGRATION-STATUS.md` for what's
   still owned by the legacy `tds-customer-legacy-frontend(-api)`.
+- **`/wiki` here is the CUSTOMER wiki** — FAQs and handbooks, no API reference. Same
+  route in both products, branched inside the host's `pages/wiki.astro` on
+  `FRONTEND_TARGET`; the nav calls it *Hilfe*. Its content comes from the database
+  through the public `/help/*` routes and is maintained in the ADMIN frontend under
+  *Wiki-Inhalte*. Note the content's owning extension (`tds-ext-live-chat-cta`) is
+  **not** in this product's extension set and does not need to be: the page is base
+  code calling a public API, exactly like the shared `LiveChatCta` island the shell
+  already mounts here.
 - **Cross-frontend SSO:** the session cookie is `Domain=.tracht-digital.de`, so a principal with
   access is signed into this portal *and* the admin frontend by one login. The per-target hint
   key prefix keeps a stale admin hint from revealing the portal.
