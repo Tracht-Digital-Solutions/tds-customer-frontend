@@ -26,6 +26,11 @@ in published packages.
       is gone; the red now means "management rights", so the surface a customer sees is the
       neutral one. `data-frontend="customer"` is still emitted (it costs nothing and keeps
       the axis explicit), it just matches no rule today.
+    - Since tds-shared **0.23.0** ("Digitale Maßarbeit") the panel canvas is warm (a 3%
+      accent tint over a sand/paper blend, plus two very soft brand fields at the outer
+      edges) and the page-head accent is the three-part brand bar, whose first and
+      longest segment is still `--tds-panel-accent` — i.e. navy here. Nothing in this
+      repo configures it; repin the host and tds-shared and it arrives.
 - **Extension set:** `support-tickets` + `billing` (the customer-facing invoice pay-link /
   own-invoice view; admins draft invoices in the admin frontend). Projects, documents and
   messages get added here as those extensions ship — see `MIGRATION-STATUS.md` for what's
