@@ -2,7 +2,8 @@
 
 The **customer portal product** (`app.tracht-digital.de`). A standalone Astro app that
 composes the shared core frontend **host** (`@tracht-digital-solutions/tds-core-frontend`)
-with the **customer-facing extension set**, at build time, into one static `dist/`. This
+with the **customer-facing extension set**, at build time, into one server-rendered
+Node application. This
 repo owns only the composition + deploy pipeline — the shell, base pages, and features live
 in published packages.
 
@@ -103,6 +104,33 @@ the **real installed extension manifests**, not fixtures.
   be composed here. Importing one fails the suite.
 - Imports, `dependencies` and the array handed to `frontendHost` must agree in
   all three directions.
+
+- **The build is `output: "server"` with the Node adapter (since 2026-08-25).**
+  Tailwind stays on PostCSS, `tdsViteBuild` stays spread, and `FRONTEND_TARGET`
+  stays on **both** env vars. Four SSR invariants the suite pins, each with a
+  failure that is silent without it:
+  - **`vite.ssr.noExternal` must cover `@tracht-digital-solutions/`.** The
+    production host has no GitHub Packages token, so a first-party specifier
+    that survives into the server bundle is ERR_MODULE_NOT_FOUND at boot.
+    `pack-release.mjs`s `verify()` fails the build on one, every build.
+  - **No page cache, ever.** A portal page belongs to one visitor;
+    `tds-shared/cache` refuses to store a response carrying `Set-Cookie` and
+    cannot key on identity. The three public sites are its consumers, not this one.
+  - **`passthroughImageService()`**, because Astros default image service is
+    sharp — a native addon nothing here needs and every deploy would carry.
+  - **`public/.htaccess` must never gain `Options +FollowSymLinks`.** Plesks
+    AllowOverride grant omits it, and a disallowed Option is FATAL rather than
+    ignored: Apache answers EVERY request with 500. That shipped once already.
+- **The deployed branch is an APPLICATION, not a folder of files.** `release`
+  carries `app.cjs`, `server/`, `client/` (the document root) and a prebuilt
+  `node_modules`. Pushed at a domain still configured for static serving it
+  takes the portal down on every path — which is why `release.yml` lost its
+  push-to-main trigger and the tds-ext-tools dispatch, and why `dev.yml` exists.
+- **The vhosts SPA fallback (`try_files … /index.html`) has to go in the same
+  window as the first SSR deploy.** Left in place it keeps answering every
+  unmatched path — and every mis-resolved relative API call — with 200 and
+  dashboard HTML, which is the documented cause of the calm-permanent-empty-list
+  class of bug. The portal looks entirely healthy, which is why nobody notices.
 
 ## Version
 

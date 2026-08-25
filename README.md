@@ -28,14 +28,37 @@ repin here.
 ```bash
 npm install --no-package-lock   # host + extensions from GitHub Packages (needs NPM_TOKEN)
 npm run dev
-npm run build                   # → dist/  (the deployed artifact)
+npm run build                   # → dist/, then postbuild packs release/
+cd release && node app.cjs      # run the deployable tree exactly as the host does
 ```
 
 ## Deploy
 
+The portal is server-rendered (`@astrojs/node`, standalone, under Plesk's
+Passenger) since 2026-08-25, so **the deployed branch is an application, not a
+folder of files**: `app.cjs`, `server/`, `client/` (the document root), a
+prebuilt `node_modules/` and `tmp/`. `scripts/pack-release.mjs` from tds-shared
+assembles it as a `postbuild` and refuses to produce a tree that could not start.
+
 - **`dev` branch** — auto-built on every push to `main` (`dev.yml`), not deployed.
 - **`release` branch** — the manual button (`release.yml`): builds, force-pushes
-  `dist/` to `release`, pings `DEPLOY_WEBHOOK_URL`. The production host pulls
+  `release/` to `release`, pings `DEPLOY_WEBHOOK_URL`. The production host pulls
   `release`.
+
+Host setup is in `tds-gateway-api/DEPLOY-PLESK.md` §3.2. Three things it is easy
+to get wrong, each of which fails quietly:
+
+- **Document Root must end in `/client`.** Pointed at the application root,
+  `server/entry.mjs` and `node_modules/` become web-fetchable.
+- **The startup file must be `app.cjs`.** Everything here is `"type": "module"`,
+  so a `.js` file is ESM and Passenger's `require()` dies with `ERR_REQUIRE_ESM`
+  — visible only in the app log.
+- **A deploy must restart the app** (`mkdir -p tmp && touch tmp/restart.txt` as
+  the deployment action). Astro code-splits its server routes into
+  content-hashed chunks loaded on first request; replacing the tree under a live
+  process 500s every route that was not already loaded.
+
+There is deliberately **no page cache** here, unlike the three public sites: a
+portal page belongs to one visitor.
 
 Secrets: `PACKAGE_TOKEN` (install + push branch), `DEPLOY_WEBHOOK_URL` (optional).
