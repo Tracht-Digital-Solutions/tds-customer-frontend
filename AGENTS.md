@@ -32,10 +32,10 @@ in published packages.
       edges) and the page-head accent is the three-part brand bar, whose first and
       longest segment is still `--tds-panel-accent` — i.e. navy here. Nothing in this
       repo configures it; repin the host and tds-shared and it arrives.
-- **Extension set:** `support-tickets` + `billing` (the customer-facing invoice pay-link /
-  own-invoice view; admins draft invoices in the admin frontend). Projects, documents and
-  messages get added here as those extensions ship — see `MIGRATION-STATUS.md` for what's
-  still owned by the legacy `tds-customer-legacy-frontend(-api)`.
+- **Extension set:** `support-tickets`, `billing` (the customer-facing invoice pay-link /
+  own-invoice view; admins draft invoices in the admin frontend), `projects`, `documents`
+  and `messages`. This is the customer-facing subset; see `MIGRATION-STATUS.md` for the
+  legacy retirement status.
 - **`/wiki` here is the CUSTOMER wiki** — FAQs and handbooks, no API reference. Same
   route in both products, branched inside the host's `pages/wiki.astro` on
   `FRONTEND_TARGET`; the nav calls it *Hilfe*. Its content comes from the database
@@ -49,6 +49,10 @@ in published packages.
   key prefix keeps a stale admin hint from revealing the portal.
 - **To change the shell or a base page, edit the *host* package and release it, then repin
   here.** Never fork base UI into this repo.
+- **Internal navigation is deliberately app-like, not a document reload.** The host owns
+  Astro's `ClientRouter`, prefetch hints and the persisted shell regions. The drawer state
+  and theme must survive a route change; cached data may remain visible with the shared
+  stale treatment while revalidating. Fix this in host/shared and repin, never locally.
 
 ## Gotchas
 
@@ -65,9 +69,13 @@ in published packages.
   elements clear the home indicator. Don't wrap a table in an `overflow-x` here
   and don't add a competing breakpoint — fix it in tds-shared and repin.
   This portal is the surface most likely to be opened on a phone.
-Same as `tds-admin-frontend`: `npm install --no-package-lock`; extensions pinned `^0.1.x`;
-Tailwind `@source` scan lives in the host; `PACKAGE_TOKEN` required, `DEPLOY_WEBHOOK_URL`
-optional.
+Same as `tds-admin-frontend`: `npm install --no-package-lock`; every extension is pinned
+to its own current `0.MINOR.x` line; Tailwind `@source` scan lives in the host;
+`PACKAGE_TOKEN` required, `DEPLOY_WEBHOOK_URL` optional.
+
+`tsconfig.json` must keep `release/` excluded. That directory is the generated deploy
+application with bundled dependencies; type-checking it reports errors from output the
+product does not own.
 
 ## Build & deploy
 

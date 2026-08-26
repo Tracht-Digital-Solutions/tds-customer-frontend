@@ -17,8 +17,11 @@ composition + deploy pipeline:
     + brand ("Portal"). The session cookie is shared
     (`Domain=.tracht-digital.de`), so a principal with access is SSO'd across the
     admin frontend + this portal.
-- The extension set: currently `support-tickets` (customer-facing only). Add the
-  billing / projects / documents / messages extensions here as they ship.
+- The host keeps the shell mounted across internal navigation, prefetches likely
+  destinations and preserves the selected theme + drawer state. Cached data can
+  remain visible while it refreshes instead of blanking the page.
+- The extension set is the customer-facing subset: support tickets, billing,
+  projects, documents and messages.
 
 To change the shell/base pages: edit the **host** package and release it, then
 repin here.
@@ -28,6 +31,7 @@ repin here.
 ```bash
 npm install --no-package-lock   # host + extensions from GitHub Packages (needs NPM_TOKEN)
 npm run dev
+npm run type-check              # release/ is excluded: it is generated output
 npm run build                   # → dist/, then postbuild packs release/
 cd release && node app.cjs      # run the deployable tree exactly as the host does
 ```
