@@ -26,6 +26,55 @@ composition + deploy pipeline:
 To change the shell/base pages: edit the **host** package and release it, then
 repin here.
 
+## Bind it to an API
+
+Three values decide which API this product talks to. All three have a
+production default, so a production build sets **nothing**.
+
+| Variable | Default | What it is |
+|---|---|---|
+| `PUBLIC_API_BASE` | `https://api.tracht-digital.de` | Gateway origin, **no** path. Every extension call resolves against it. |
+| `PUBLIC_AUTH_API_URL` | `https://api.tracht-digital.de/auth` | `tds-auth-api`, **with** the gateway's `/auth` prefix. Session check (`GET /me`) and renewal (`POST /refresh`). |
+| `PUBLIC_LOGIN_URL` | `https://auth.tracht-digital.de` | The central login site. Logged-out visitors land there with `?next=<absolute return URL>`. |
+
+Template: `.env.example` → `.env` (gitignored). For a local stack:
+
+```ini
+PUBLIC_API_BASE=http://localhost:8080
+PUBLIC_AUTH_API_URL=http://localhost:8080/auth
+PUBLIC_LOGIN_URL=http://localhost:4326
+```
+
+### Build time, not run time
+
+**These values are compiled into the bundle.** Pointing a deployed portal at a
+different API means building and deploying again; there is no switch on the
+host.
+
+That is deliberate, and it is the opposite of what the public sites do — they
+pair with an API at run time through `/install`. `PUBLIC_API_BASE` is rendered
+as `<meta name="tds-api-base">` by the host shell
+(`tds-core-frontend-pkg/src/layouts/Layout.astro`), and `runtimeConfig()` in
+`tds-shared/api` **gives up as soon as that meta tag is present**, so a panel
+never fetches `tds-runtime.json`. Without that brake every single navigation
+would fire a guaranteed 404 for a file only the public sites have.
+
+### The check that actually matters
+
+A wrong `PUBLIC_API_BASE` does not break the portal — it empties it, quietly.
+So after deploying, look at the browser's network panel once:
+
+- does `/me` go to the **absolute** API origin rather than relative to the
+  portal's own host?
+- does it answer `200` with `Access-Control-Allow-Origin: <this portal's
+  origin>` and `Access-Control-Allow-Credentials: true`?
+
+Without that CORS header the browser discards the response **before any code
+sees it**. There is no server-side error, nothing in any log, and the UI shows
+precisely what it shows when there is genuinely no data. The origin has to be
+listed in the backends' `CORS_ALLOWED_ORIGINS` or added in the admin panel
+under *Einstellungen → CORS*; the two layers are unioned, not overridden.
+
 ## Develop
 
 ```bash
