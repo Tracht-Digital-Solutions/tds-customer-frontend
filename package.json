@@ -27,7 +27,7 @@
     "@tracht-digital-solutions/tds-ext-documents": "^0.1.0",
     "@tracht-digital-solutions/tds-ext-messages": "^0.1.0",
     "@tracht-digital-solutions/tds-ext-projects": "^0.1.0",
-    "@tracht-digital-solutions/tds-ext-shop": "^0.1.1",
+    "@tracht-digital-solutions/tds-ext-shop": "^0.2.0",
     "@tracht-digital-solutions/tds-ext-support-tickets": "^0.7.1",
     "@tracht-digital-solutions/tds-frontend-contract": "^1.10.1",
     "@tracht-digital-solutions/tds-shared": "^0.35.1",
