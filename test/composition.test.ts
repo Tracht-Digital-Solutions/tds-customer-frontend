@@ -8,6 +8,7 @@ import billing from "@tracht-digital-solutions/tds-ext-billing";
 import messages from "@tracht-digital-solutions/tds-ext-messages";
 import projects from "@tracht-digital-solutions/tds-ext-projects";
 import documents from "@tracht-digital-solutions/tds-ext-documents";
+import shop from "@tracht-digital-solutions/tds-ext-shop";
 
 /**
  * This repo has no source of its own — it makes exactly one decision: which
@@ -27,7 +28,7 @@ import documents from "@tracht-digital-solutions/tds-ext-documents";
  *    actually handed to `frontendHost`.
  */
 
-const EXTENSIONS: ExtensionManifest[] = [supportTickets, billing, messages, projects, documents];
+const EXTENSIONS: ExtensionManifest[] = [supportTickets, billing, messages, projects, documents, shop];
 
 const config = readFileSync(new URL("../astro.config.mjs", import.meta.url), "utf8");
 const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
