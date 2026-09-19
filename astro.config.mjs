@@ -3,7 +3,7 @@ import node from "@astrojs/node";
 import react from "@astrojs/react";
 import { frontendHost } from "@tracht-digital-solutions/tds-frontend-contract/astro";
 import { coreFrontendBase } from "@tracht-digital-solutions/tds-core-frontend/astro";
-import { tdsViteBuild } from "@tracht-digital-solutions/tds-shared/astro";
+import { motionSsrNoExternal, tdsViteBuild } from "@tracht-digital-solutions/tds-shared/astro";
 
 // The customer-portal extension set — customer-facing only. coreFrontendBase injects
 // the shared base routes; frontendHost injects each extension's route + virtuals.
@@ -89,7 +89,11 @@ export default defineConfig({
       // Enumerated, never `noExternal: true`: the blanket form drags in
       // CJS-only packages and anything touching Node builtins, and Rollup then
       // fails in ways whose message points nowhere near the cause.
-      noExternal: [/^@tracht-digital-solutions\//, "zod"],
+      //
+      // `motion` (via tds-shared's components) is bundled for the same reason:
+      // the release tree has no node_modules copy of it, and bundling keeps the
+      // server on exactly the copy the browser got. tds-shared owns the list.
+      noExternal: [/^@tracht-digital-solutions\//, "zod", ...motionSsrNoExternal],
     },
   },
 });
