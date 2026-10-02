@@ -1,0 +1,1 @@
+import{i as e}from"./react-dom.66hab0gy.js";import{r as t}from"./chunk-K3B6PMZC.C8nlMAZN.js";var n=e({Collapse:()=>t});export{n as t};
