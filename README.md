@@ -21,7 +21,8 @@ composition + deploy pipeline:
   destinations and preserves the selected theme + drawer state. Cached data can
   remain visible while it refreshes instead of blanking the page.
 - The extension set is the customer-facing subset: support tickets, billing,
-  projects, documents and messages.
+  projects, documents, messages and shop. `test/composition.test.ts` holds it as
+  an allowlist.
 
 To change the shell/base pages: edit the **host** package and release it, then
 repin here.

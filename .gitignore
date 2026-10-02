@@ -22,3 +22,6 @@ Desktop.ini
 # Local build environment (see .env.example). Never commit a real one.
 .env
 .env.production
+
+# Agent worktrees and local agent settings
+.claude/

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { BASE_ROUTE_PATTERNS } from "@tracht-digital-solutions/tds-core-frontend/astro";
 import { describe, expect, it } from "vitest";
 import { composeExtensions } from "@tracht-digital-solutions/tds-frontend-contract";
 import type { ExtensionManifest } from "@tracht-digital-solutions/tds-frontend-contract";
@@ -101,7 +102,7 @@ describe("the extension set composes", () => {
     // A nav link to a route nobody injected is a 404 in the shipped portal.
     const { nav, routes } = composeExtensions(EXTENSIONS);
     const patterns = new Set(routes.map((r) => r.pattern));
-    const BASE = new Set(["/", "/users", "/einstellungen", "/wiki"]);
+    const BASE = new Set(BASE_ROUTE_PATTERNS);
     for (const entry of nav) {
       const target = entry.href.split("?")[0]!;
       expect(
@@ -112,7 +113,8 @@ describe("the extension set composes", () => {
   });
 
   it("does not collide with the host's own base routes", () => {
-    const BASE = ["/", "/users", "/einstellungen", "/wiki"];
+    // Read from the host, not restated: the copy here had lost five of them.
+    const BASE = BASE_ROUTE_PATTERNS;
     const patterns = composeExtensions(EXTENSIONS).routes.map((r) => r.pattern);
     for (const base of BASE) {
       expect(patterns, `extension route shadows the base route ${base}`).not.toContain(base);
@@ -282,23 +284,25 @@ describe("declared vs. composed extensions", () => {
     expect(names).toHaveLength(EXTENSIONS.length);
   });
 
-  it("keeps the portal's extension set a subset of the admin's", () => {
-    // The portal is deliberately the smaller surface; admin-only tooling
-    // (CMS, lexware, contact inbox, tools) must not leak into it.
-    const ADMIN_ONLY = [
-      "tds-ext-website-cms",
-      "tds-ext-blog-cms",
-      "tds-ext-lexware",
-      "tds-ext-contact-tickets",
-      "tds-ext-tools",
-      "tds-ext-customers",
-      "tds-ext-time-tracker",
+  it("composes only the extensions the portal is meant to have", () => {
+    // An ALLOWLIST, not a list of admin-only packages: the denylist that was
+    // here had no entry for tds-ext-cards or tds-ext-live-chat-cta, so
+    // composing either into the customer portal passed. A new extension now
+    // has to be added here on purpose.
+    const PORTAL_EXTENSIONS = [
+      "tds-ext-billing",
+      "tds-ext-documents",
+      "tds-ext-messages",
+      "tds-ext-projects",
+      "tds-ext-shop",
+      "tds-ext-support-tickets",
     ];
-    for (const name of ADMIN_ONLY) {
+    const composed = importedSpecifiers.filter((s) => s.includes("/tds-ext-"));
+    for (const specifier of composed) {
       expect(
-        importedSpecifiers.some((s) => s.endsWith(name)),
-        `${name} is admin-only but composed into the customer portal`,
-      ).toBe(false);
+        PORTAL_EXTENSIONS.some((name) => specifier.endsWith(name)),
+        `${specifier} is not on the portal's allowlist`,
+      ).toBe(true);
     }
   });
 

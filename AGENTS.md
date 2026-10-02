@@ -33,8 +33,9 @@ in published packages.
       longest segment is still `--tds-panel-accent` — i.e. navy here. Nothing in this
       repo configures it; repin the host and tds-shared and it arrives.
 - **Extension set:** `support-tickets`, `billing` (the customer-facing invoice pay-link /
-  own-invoice view; admins draft invoices in the admin frontend), `projects`, `documents`
-  and `messages`. This is the customer-facing subset; see `MIGRATION-STATUS.md` for the
+  own-invoice view; admins draft invoices in the admin frontend), `projects`, `documents`,
+  `messages` and `shop`. This is the customer-facing subset, held as an ALLOWLIST in
+  `test/composition.test.ts` (a new extension is added there on purpose); see `MIGRATION-STATUS.md` for the
   legacy retirement status.
 - **`/wiki` here is the CUSTOMER wiki** — FAQs and handbooks, no API reference. Same
   route in both products, branched inside the host's `pages/wiki.astro` on
@@ -69,6 +70,9 @@ in published packages.
   elements clear the home indicator. Don't wrap a table in an `overflow-x` here
   and don't add a competing breakpoint — fix it in tds-shared and repin.
   This portal is the surface most likely to be opened on a phone.
+- **One tds-shared, decided here.** The host takes it as a peer (since host 0.29.0);
+  `npm ls @tracht-digital-solutions/tds-shared` must show exactly one version.
+
 Same as `tds-admin-frontend`: `npm install --no-package-lock`; every extension is pinned
 to its own current `0.MINOR.x` line; Tailwind `@source` scan lives in the host;
 `PACKAGE_TOKEN` required, `DEPLOY_WEBHOOK_URL` optional.
@@ -82,11 +86,11 @@ product does not own.
 ```bash
 npm install --no-package-lock   # host + extensions from GitHub Packages (needs NPM_TOKEN)
 npm run dev
-npm run build                   # → dist/  (FRONTEND_TARGET=customer)
+npm run build                   # → dist/, then postbuild assembles release/  (FRONTEND_TARGET=customer)
 ```
 
 - **`dev` branch** — auto-built on push to `main` (`dev.yml`), not deployed.
-- **`release` branch** — the manual button (`release.yml`): builds, force-pushes `dist/` to
+- **`release` branch** — the manual button (`release.yml`): builds, force-pushes `release/` to
   `release`, pings `DEPLOY_WEBHOOK_URL`. The production host pulls `release`.
 
 ## Tests
@@ -133,7 +137,7 @@ the **real installed extension manifests**, not fixtures.
   carries `app.cjs`, `server/`, `client/` (the document root) and a prebuilt
   `node_modules`. Pushed at a domain still configured for static serving it
   takes the portal down on every path — which is why `release.yml` lost its
-  push-to-main trigger and the tds-ext-tools dispatch, and why `dev.yml` exists.
+  push-to-main trigger, and why `dev.yml` exists.
 - **The vhosts SPA fallback (`try_files … /index.html`) has to go in the same
   window as the first SSR deploy.** Left in place it keeps answering every
   unmatched path — and every mis-resolved relative API call — with 200 and
