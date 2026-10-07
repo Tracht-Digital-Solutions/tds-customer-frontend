@@ -1,149 +1,39 @@
-# Agent notes — tds-customer-frontend
+# AGENTS.md — tds-customer-frontend
 
 The **customer portal product** (`app.tracht-digital.de`). A standalone Astro app that
-composes the shared core frontend **host** (`@tracht-digital-solutions/tds-core-frontend`)
-with the **customer-facing extension set**, at build time, into one server-rendered
-Node application. This
-repo owns only the composition + deploy pipeline — the shell, base pages, and features live
-in published packages.
+composes the core frontend host (`@tracht-digital-solutions/tds-core-frontend`) with the
+customer-facing extension set, at build time, into one server-rendered Node application.
+This repo owns only the composition and the deploy pipeline; the shell, base pages and
+features live in published packages. It partially replaces `tds-customer-legacy-frontend`.
 
-> Read the root `C:\Projects\TDS-LP\CLAUDE.md` for the big picture and shared gotchas, and
-> `MIGRATION-STATUS.md` for how this product (partially) replaces the legacy `tds-customer-legacy-frontend`.
-
-## Mental model
-
-- **Assembled at build time from GitHub Packages** — no app source beyond `astro.config.mjs`
-  + config:
-  - `coreFrontendBase()` (host package) injects the base pages + shell + pre-paint auth gate.
-  - `frontendHost({ extensions })` injects each extension's route + virtual modules.
-  - `FRONTEND_TARGET=customer` selects the customer auth-hint prefix (`tds_customer_*`), the
-    brand suffix ("Portal"), and — since host 0.13.0 / tds-shared 0.15.0 — the **accent hue**:
-    the host emits `<html data-frontend="customer">` and `surfaces/panel.css` paints this
-    product in the brand **navy** (the management frontend reads burgundy), so a user with
-    both open knows which surface they are on. That is the only visual difference between
-    the two products; it is one token block in tds-shared, not anything this repo configures.
-    - **Since tds-shared 0.20.1 this product has no override at all** — it renders the BASE
-      panel, and `[data-frontend="admin"]` is the block that deviates. The portal's old teal
-      is gone; the red now means "management rights", so the surface a customer sees is the
-      neutral one. `data-frontend="customer"` is still emitted (it costs nothing and keeps
-      the axis explicit), it just matches no rule today.
-    - Since tds-shared **0.23.0** ("Digitale Maßarbeit") the panel canvas is warm (a 3%
-      accent tint over a sand/paper blend, plus two very soft brand fields at the outer
-      edges) and the page-head accent is the three-part brand bar, whose first and
-      longest segment is still `--tds-panel-accent` — i.e. navy here. Nothing in this
-      repo configures it; repin the host and tds-shared and it arrives.
-- **Extension set:** `support-tickets`, `billing` (the customer-facing invoice pay-link /
-  own-invoice view; admins draft invoices in the admin frontend), `projects`, `documents`,
-  `messages` and `shop`. This is the customer-facing subset, held as an ALLOWLIST in
-  `test/composition.test.ts` (a new extension is added there on purpose); see `MIGRATION-STATUS.md` for the
-  legacy retirement status.
-- **`/wiki` here is the CUSTOMER wiki** — FAQs and handbooks, no API reference. Same
-  route in both products, branched inside the host's `pages/wiki.astro` on
-  `FRONTEND_TARGET`; the nav calls it *Hilfe*. Its content comes from the database
-  through the public `/help/*` routes and is maintained in the ADMIN frontend under
-  *Wiki-Inhalte*. Note the content's owning extension (`tds-ext-live-chat-cta`) is
-  **not** in this product's extension set and does not need to be: the page is base
-  code calling a public API, exactly like the shared `LiveChatCta` island the shell
-  already mounts here.
-- **Cross-frontend SSO:** the session cookie is `Domain=.tracht-digital.de`, so a principal with
-  access is signed into this portal *and* the admin frontend by one login. The per-target hint
-  key prefix keeps a stale admin hint from revealing the portal.
-- **To change the shell or a base page, edit the *host* package and release it, then repin
-  here.** Never fork base UI into this repo.
-- **Internal navigation is deliberately app-like, not a document reload.** The host owns
-  Astro's `ClientRouter`, prefetch hints and the persisted shell regions. The drawer state
-  and theme must survive a route change; cached data may remain visible with the shared
-  stale treatment while revalidating. Fix this in host/shared and repin, never locally.
-
-## Gotchas
-
-- **The toast stack is the host's, and there is exactly one.** The shell mounts
-  `ToastHost` (tds-shared) once; extensions only *raise* toasts. If a page ever
-  shows every message twice, something mounted a second host — that is the first
-  thing to check. Introduced in tds-shared 0.16.0 + host 0.14.0, which is why
-  those two pins moved together: a `0.x` caret is minor-locked, so `^0.15.0`
-  would have kept resolving the toast-less build. (That is provenance, not the
-  current requirement — read `package.json` for the pins in force.)
-- **Mobile behaviour comes from the library, not from this repo.** Since
-  tds-shared 0.18.0 a `.tds-table` scrolls itself below 40rem, `.tds-page__head`
-  stacks, interactive chips take the 44px touch target and the fixed bottom
-  elements clear the home indicator. Don't wrap a table in an `overflow-x` here
-  and don't add a competing breakpoint — fix it in tds-shared and repin.
-  This portal is the surface most likely to be opened on a phone.
-- **One tds-shared, decided here.** The host takes it as a peer (since host 0.29.0);
-  `npm ls @tracht-digital-solutions/tds-shared` must show exactly one version.
-
-Same as `tds-admin-frontend`: `npm install --no-package-lock`; every extension is pinned
-to its own current `0.MINOR.x` line; Tailwind `@source` scan lives in the host;
-`PACKAGE_TOKEN` required, `DEPLOY_WEBHOOK_URL` optional.
-
-`tsconfig.json` must keep `release/` excluded. That directory is the generated deploy
-application with bundled dependencies; type-checking it reports errors from output the
-product does not own.
-
-## Build & deploy
+## Commands
 
 ```bash
-npm install --no-package-lock   # host + extensions from GitHub Packages (needs NPM_TOKEN)
-npm run dev
-npm run build                   # → dist/, then postbuild assembles release/  (FRONTEND_TARGET=customer)
+npm install --no-package-lock   # needs NPM_TOKEN; never npm ci (win32 lockfile breaks Linux CI)
+npm run dev                     # astro dev
+npm run type-check              # astro check
+npm run test:run                # vitest: composition + SSR invariants
+npm run build                   # astro build → dist/, postbuild assembles release/
+npm start                       # run release/app.cjs locally
 ```
 
-- **`dev` branch** — auto-built on push to `main` (`dev.yml`), not deployed.
-- **`release` branch** — the manual button (`release.yml`): builds, force-pushes `release/` to
-  `release`, pings `DEPLOY_WEBHOOK_URL`. The production host pulls `release`.
+## Hard rules
 
-## Tests
+- **Never fork base UI into this repo.** Change the host or tds-shared, release, then repin here.
+- The extension set is an **allowlist**: admin-only tooling must never be composed here.
+- Adding an extension is three edits: the import, the `extensions` array and `dependencies`.
+- `FRONTEND_TARGET=customer` stays on both env vars; `frontendHost` keeps its `layout` option.
+- `npm ls @tracht-digital-solutions/tds-shared` must show exactly one version.
+- No page cache, ever. `vite.ssr.noExternal` covers `@tracht-digital-solutions/`.
+- `public/.htaccess` never gets `Options +FollowSymLinks`; `tsconfig.json` keeps `release/` excluded.
+- Production deploys only via the manual `release.yml` button.
 
-`npm run test:run` (vitest). This repo has no `src/` — its whole job is one
-composition decision, so `test/composition.test.ts` tests that decision against
-the **real installed extension manifests**, not fixtures.
+## Topic files
 
-- `composeExtensions()` runs over the actual portal set and must not throw. It
-  hard-errors on any duplicate extension id, nav id, widget id or route — the FE
-  twin of the shared-`phinxlog` rule — but normally only during a full product
-  build.
-- Every nav entry must target a route some extension or the host actually
-  serves, or it is a 404 in the shipped portal.
-- **`FRONTEND_TARGET` must stay `customer` on both env vars.** Flipping it to
-  `admin` would give the portal the admin auth-hint prefix (`tds_admin_*`), so a
-  stale admin hint could reveal the portal shell before `/me` answers. Verified:
-  the flip fails the suite.
-- **`frontendHost` must keep its `layout` option**, or every extension page
-  ships as a bare unstyled fragment with no `<head>`.
-- **The portal set stays a strict subset.** Admin-only tooling — website/blog
-  CMS, lexware, the contact inbox, tools, customers, time-tracker — must never
-  be composed here. Importing one fails the suite.
-- Imports, `dependencies` and the array handed to `frontendHost` must agree in
-  all three directions.
+| File | Read before |
+|---|---|
+| [docs/agents/architecture.md](docs/agents/architecture.md) | Changing the extension set, host options, the wiki or anything visual |
+| [docs/agents/deployment.md](docs/agents/deployment.md) | Changing the build, `release/`, workflows or host configuration |
+| [docs/agents/testing.md](docs/agents/testing.md) | Changing tests or the composition |
 
-- **The build is `output: "server"` with the Node adapter (since 2026-08-25).**
-  Tailwind stays on PostCSS, `tdsViteBuild` stays spread, and `FRONTEND_TARGET`
-  stays on **both** env vars. Four SSR invariants the suite pins, each with a
-  failure that is silent without it:
-  - **`vite.ssr.noExternal` must cover `@tracht-digital-solutions/`.** The
-    production host has no GitHub Packages token, so a first-party specifier
-    that survives into the server bundle is ERR_MODULE_NOT_FOUND at boot.
-    `pack-release.mjs`s `verify()` fails the build on one, every build.
-  - **No page cache, ever.** A portal page belongs to one visitor;
-    `tds-shared/cache` refuses to store a response carrying `Set-Cookie` and
-    cannot key on identity. The three public sites are its consumers, not this one.
-  - **`passthroughImageService()`**, because Astros default image service is
-    sharp — a native addon nothing here needs and every deploy would carry.
-  - **`public/.htaccess` must never gain `Options +FollowSymLinks`.** Plesks
-    AllowOverride grant omits it, and a disallowed Option is FATAL rather than
-    ignored: Apache answers EVERY request with 500. That shipped once already.
-- **The deployed branch is an APPLICATION, not a folder of files.** `release`
-  carries `app.cjs`, `server/`, `client/` (the document root) and a prebuilt
-  `node_modules`. Pushed at a domain still configured for static serving it
-  takes the portal down on every path — which is why `release.yml` lost its
-  push-to-main trigger, and why `dev.yml` exists.
-- **The vhosts SPA fallback (`try_files … /index.html`) has to go in the same
-  window as the first SSR deploy.** Left in place it keeps answering every
-  unmatched path — and every mis-resolved relative API call — with 200 and
-  dashboard HTML, which is the documented cause of the calm-permanent-empty-list
-  class of bug. The portal looks entirely healthy, which is why nobody notices.
-
-## Version
-
-Bump `package.json` `version` on any composition/config/doc change, committed with the code.
+Workspace rules: `../CLAUDE.md`. Legacy replacement status: `../MIGRATION-STATUS.md`.
