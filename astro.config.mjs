@@ -13,8 +13,9 @@ import messages from "@tracht-digital-solutions/tds-ext-messages";
 import projects from "@tracht-digital-solutions/tds-ext-projects";
 import documents from "@tracht-digital-solutions/tds-ext-documents";
 import shop from "@tracht-digital-solutions/tds-ext-shop";
+import referrals from "@tracht-digital-solutions/tds-ext-referrals";
 
-const extensions = [supportTickets, billing, messages, projects, documents, shop];
+const extensions = [supportTickets, billing, messages, projects, documents, shop, referrals];
 
 // This product builds as the CUSTOMER target (shell auth-hint key + brand).
 process.env.FRONTEND_TARGET = "customer";

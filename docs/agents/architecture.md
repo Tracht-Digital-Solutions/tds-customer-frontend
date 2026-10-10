@@ -15,7 +15,8 @@ There is no app source here beyond `astro.config.mjs` and configuration.
 ## Extension set (allowlist)
 
 `support-tickets`, `billing` (own invoices and the pay link; admins draft invoices in the admin
-product), `projects`, `documents`, `messages` and `shop`.
+product), `projects`, `documents`, `messages`, `shop` and `referrals` ("Empfehlungen": a
+partner's own link, referrals and payout data; needs `referrals:partner`).
 
 The set is an **allowlist** in `test/composition.test.ts`; a new extension is added there on
 purpose. Admin-only tooling (website/blog CMS, lexware, the contact inbox, tools, customers,
