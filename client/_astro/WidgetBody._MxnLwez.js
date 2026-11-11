@@ -1,0 +1,1 @@
+import{m as e}from"./components.CaTwdXdC.js";import{t}from"./jsx-runtime.CpoXNhZb.js";var n=t();function r(){return(0,n.jsx)(e,{endpoint:`/documents/summary`})}export{r as default};
